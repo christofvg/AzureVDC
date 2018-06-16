@@ -1,0 +1,56 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "spokeVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the spoke virtual network"
+            }
+        },
+        "spokeVnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the spoke virtual network"
+            }
+        },
+        "spokeSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the spoke subnet"
+            }
+        },
+        "spokeSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the spoke subnet"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('spokeVnetName')]",
+            "apiVersion": "2017-06-01",
+            "location": "[resourceGroup().location]",
+            "comments": "Deployment of the spoke virtual network",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('spokeVnetPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('spokeSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('spokeSubnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

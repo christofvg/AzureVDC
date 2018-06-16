@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hubVnetName": {
+            "value": "vdc-hub-vnet"
+        },
+        "hubVnetPrefix": {
+            "value": "10.0.0.0/24"
+        },
+        "gatewaySubnetPrefix": {
+            "value": "10.0.0.0/26"
+        },
+        "trustedSubnetName": {
+            "value": "trusted"
+        },
+        "trustedSubnetPrefix": {
+            "value": "10.0.0.64/26"
+        },
+        "untrustedSubnetName": {
+            "value": "untrusted"
+        },
+        "untrustedSubnetPrefix": {
+            "value": "10.0.0.128/26"
+        },
+        "managementSubnetName": {
+            "value": "management"
+        },
+        "managementSubnetPrefix": {
+            "value": "10.0.0.192/26"
+        }
+    }
+}

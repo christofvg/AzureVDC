@@ -1,0 +1,104 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "hubVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the HUB virtual network"
+            }
+        },
+        "hubVnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the HUB virtual network"
+            }
+        },
+        "gatewaySubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the gateway subnet"
+            }
+        },
+        "trustedSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the trusted subnet"
+            }
+        },
+        "trustedSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the trusted subnet"
+            }
+        },
+        "untrustedSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the untrusted subnet"
+            }
+        },
+        "untrustedSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the untrusted subnet"
+            }
+        },
+        "managementSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the management subnet"
+            }
+        },
+        "managementSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the management subnet"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('hubVnetName')]",
+            "apiVersion": "2017-06-01",
+            "location": "[resourceGroup().location]",
+            "comments": "Deployment of the HUB virtual network",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('hubVnetPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('gatewaySubnetPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('trustedSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('trustedSubnetPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('untrustedSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('untrustedSubnetPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('managementSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('managementSubnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

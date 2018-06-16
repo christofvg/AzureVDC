@@ -1,0 +1,245 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "numberOfInstances": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of instances of firewalls that need to be deployed"
+            }
+        },
+        "firewallNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Then name prefix for the firewalls"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network to which the firewalls are connected"
+            }
+        },
+        "virtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource group in which the virtual network is deployed"
+            }
+        },
+        "trustedFirewallSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet for the firewalls"
+            }
+        },
+        "trustedSubnetIpPrefixString": {
+            "type": "string",
+            "metadata": {
+                "description": "First 3 octets and separating dots of the subnet (e.g. '10.0.0.')"
+            }
+        },
+        "trustedFirstIpHostString": {
+            "type": "string",
+            "metadata": {
+                "description": "Last octet without separating dot of the subnet (e.g. '68')"
+            }
+        },
+        "untrustedFirewallSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet for the firewalls"
+            }
+        },
+        "untrustedSubnetIpPrefixString": {
+            "type": "string",
+            "metadata": {
+                "description": "First 3 octets and separating dots of the subnet (e.g. '10.0.0.')"
+            }
+        },
+        "untrustedFirstIpHostString": {
+            "type": "string",
+            "metadata": {
+                "description": "Last octet without separating dot of the subnet (e.g. '68')"
+            }
+        },
+        "pfSenseImageResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource group in which the pfSense image is deployed"
+            }
+        },
+        "imageName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the pfSense image"
+            }
+        },
+        "firewallVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "VM size for the firewalls"
+            }
+        }
+    },
+    "variables": {
+        "storageAccountName": "[concat(parameters('firewallNamePrefix'), 'sawinvm')]",
+        "trustedSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup') ,'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('trustedFirewallSubnet'))]",
+        "untrustedSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup') ,'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('untrustedFirewallSubnet'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[concat(parameters('firewallNamePrefix'), '-as')]",
+            "apiVersion": "2018-04-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+              "platformFaultDomainCount": 3,
+              "platformUpdateDomainCount": 3
+            },
+            "sku": {
+                "name": "Aligned"
+            }
+          },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2018-02-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage",
+            "properties": {}
+        },
+        {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-trusted-nic')]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "count": "[parameters('numberOfInstances')]",
+                "name": "nicCopy"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-untrusted-nic'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(parameters('trustedSubnetIpPrefixString'), copyIndex(int(parameters('trustedFirstIpHostString'))))]",
+                            "subnet": {
+                                "id": "[variables('trustedSubnetRef')]"
+                            }
+                        }
+                    }
+                ],
+                "enableIPForwarding": true
+            }
+        },
+        {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-untrusted-nic')]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "count": "[parameters('numberOfInstances')]",
+                "name": "nicCopy"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(parameters('untrustedSubnetIpPrefixString'), copyIndex(int(parameters('untrustedFirstIpHostString'))))]",
+                            "subnet": {
+                                "id": "[variables('untrustedSubnetRef')]"
+                            }
+                        }
+                    }
+                ],
+                "enableIPForwarding": true
+            }
+        },
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(parameters('firewallNamePrefix'), '-', copyIndex(1))]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', concat(parameters('firewallNamePrefix'), '-as'))]",
+                "diskcopy",
+                "nicCopy"
+            ],
+            "copy": {
+                "count": "[parameters('numberOfInstances')]",
+                "name": "vmCopy"
+            },
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', concat(parameters('firewallNamePrefix'), '-as'))]"
+                  },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('firewallVmSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "osType": "Linux",
+                        "createOption": "Attach",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-os'))]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "properties": {
+                                "primary": false
+                            },
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-untrusted-nic'))]"
+                        },
+                        {
+                            "properties": {
+                                "primary": true
+                            },
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-trusted-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/disks",
+            "name": "[concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-os')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "copy": {
+                "name": "DiskCopy",
+                "count": "[parameters('numberOfInstances')]"
+            },
+            "properties": {
+                "osType": "Linux",
+                "creationData": {
+                    "createOption": "Import",
+                    "sourceUri": "https://pfsenseimages0406.blob.core.windows.net/vhds/pfSense.vhd"
+                },
+                "diskSizeGB": 30
+            }
+        }
+    ]
+}
