@@ -1,2 +1,2 @@
 # AzureVDC
-Project to demonstrate a virtual datacenter using pfSense firewalls
+Project to demonstrate a Azure Virtual Datacenter
