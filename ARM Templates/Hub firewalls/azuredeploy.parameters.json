@@ -12,28 +12,28 @@
             "value": "vdc-hub-vnet"
         },
         "virtualNetworkResourceGroup": {
-            "value": "chvg-vdc-networking"
+            "value": "rg-hub-network"
         },
         "trustedFirewallSubnet": {
             "value": "trusted"
         },
         "trustedSubnetIpPrefixString": {
-            "value": "10.0.0."
+            "value": "10.1.0."
         },
         "trustedFirstIpHostString": {
-            "value": "68"
+            "value": "36"
         },
         "untrustedFirewallSubnet": {
             "value": "untrusted"
         },
         "untrustedSubnetIpPrefixString": {
-            "value": "10.0.0."
+            "value": "10.1.0."
         },
         "untrustedFirstIpHostString": {
-            "value": "132"
+            "value": "68"
         },
         "pfSenseImageResourceGroupName": {
-            "value": "chvg-vdc-pfsense-images-rg"
+            "value": "pfsense-images-rg"
         },
         "imageName": {
             "value": "pfSense"
