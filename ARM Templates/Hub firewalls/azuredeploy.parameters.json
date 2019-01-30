@@ -32,11 +32,11 @@
         "untrustedFirstIpHostString": {
             "value": "68"
         },
-        "pfSenseImageResourceGroupName": {
-            "value": "pfsense-images-rg"
+        "trustedLoadBalancerIPAddress":{
+            "value": "10.1.0.40"
         },
-        "imageName": {
-            "value": "pfSense"
+        "pfSenseVhdPath": {
+            "value": "/vhd/pfsense.vhd"
         },
         "firewallVmSize": {
             "value": "Standard_B2s"

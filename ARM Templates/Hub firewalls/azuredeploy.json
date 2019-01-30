@@ -62,16 +62,22 @@
                 "description": "Last octet without separating dot of the subnet (e.g. '68')"
             }
         },
-        "pfSenseImageResourceGroupName": {
+        "trustedLoadBalancerIPAddress": {
             "type": "string",
             "metadata": {
-                "description": "Resource group in which the pfSense image is deployed"
+                "description": "Static IP address for the trusted load balancer"
             }
         },
-        "imageName": {
+        "pfSenseVhdPath": {
             "type": "string",
             "metadata": {
-                "description": "Name of the pfSense image"
+                "description": "Path to the pfSense VHD file on the storage account (e.g. /vhd/pfsense.vhd)"
+            }
+        },
+        "pfSenseStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account name on which the VHD is stored"
             }
         },
         "firewallVmSize": {
@@ -82,11 +88,80 @@
         }
     },
     "variables": {
-        "storageAccountName": "[concat(parameters('firewallNamePrefix'), 'sawinvm')]",
+        "trustedLoadBalancerName": "[concat(parameters('firewallNamePrefix'), '-trusted-lb')]",
+        "trustedLoadBalancerFrontEndName": "[concat(variables('trustedLoadBalancerName'), '-fe')]",
+        "trustedLoadBalancerBackEndName": "[concat(variables('trustedLoadBalancerName'), '-be')]",
+        "trustedLoadBalancerProbeName": "[concat(variables('trustedLoadBalancerName'), '-probe')]",
+        "trustedLoadBalancerHARuleName": "[concat(variables('trustedLoadBalancerName'), '-rule-ha')]",
+        "trustedLoadBalancerId": "[resourceId('Microsoft.Network/loadBalancers', variables('trustedLoadBalancerName'))]",
+        "trustedLoadBalancerFrontEndIPConfigId": "[concat(variables('trustedLoadBalancerId'), '/frontendIPConfigurations/', variables('trustedLoadBalancerFrontEndName'))]",
+        "trustedLoadBalancerBackEndPoolId": "[concat(variables('trustedLoadBalancerId'), '/backendAddressPools/', variables('trustedLoadBalancerBackEndName'))]",
+        "trustedLoadBalancerProbeId": "[concat(variables('trustedLoadBalancerId'), '/probes/', variables('trustedLoadBalancerProbeName'))]",
+        "pfSenseSourceUri": "[concat('https://', parameters('pfSenseStorageAccountName'), '.blob.core.windows.net', parameters('pfSenseVhdPath'))]",
         "trustedSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup') ,'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('trustedFirewallSubnet'))]",
         "untrustedSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup') ,'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('untrustedFirewallSubnet'))]"
     },
     "resources": [
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "sku": {
+                "name": "Standard"
+            },
+            "name": "[variables('trustedLoadBalancerName')]",
+            "apiVersion": "2018-12-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('trustedLoadBalancerFrontEndName')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[variables('trustedSubnetRef')]"
+                            },
+                            "privateIPAddress": "[parameters('trustedLoadBalancerIPAddress')]"
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('trustedLoadBalancerBackEndName')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "[variables('trustedLoadBalancerHARuleName')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[variables('trustedLoadBalancerFrontEndIPConfigId')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[variables('trustedLoadBalancerBackEndPoolId')]"
+                            },
+                            "protocol": "All",
+                            "frontendPort": 0,
+                            "backendPort": 0,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[variables('trustedLoadBalancerProbeId')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                      "name": "[variables('trustedLoadBalancerProbeName')]",
+                      "properties": {
+                        "protocol": "tcp",
+                        "port": 443,
+                        "intervalInSeconds": 5,
+                        "numberOfProbes": 2
+                      }
+                    }
+                  ]
+            }
+        },
         {
             "type": "Microsoft.Compute/availabilitySets",
             "name": "[concat(parameters('firewallNamePrefix'), '-as')]",
@@ -101,17 +176,6 @@
             }
         },
         {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('storageAccountName')]",
-            "apiVersion": "2018-02-01",
-            "location": "[resourceGroup().location]",
-            "sku": {
-                "name": "Standard_LRS"
-            },
-            "kind": "Storage",
-            "properties": {}
-        },
-        {
             "apiVersion": "2016-03-30",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-trusted-nic')]",
@@ -121,6 +185,7 @@
                 "name": "nicCopy"
             },
             "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('trustedLoadBalancerName'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-untrusted-nic'))]"
             ],
             "properties": {
@@ -132,7 +197,12 @@
                             "privateIPAddress": "[concat(parameters('trustedSubnetIpPrefixString'), copyIndex(int(parameters('trustedFirstIpHostString'))))]",
                             "subnet": {
                                 "id": "[variables('trustedSubnetRef')]"
-                            }
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[variables('trustedLoadBalancerBackEndPoolId')]"
+                                }
+                            ]
                         }
                     }
                 ],
@@ -170,7 +240,6 @@
             "name": "[concat(parameters('firewallNamePrefix'), '-', copyIndex(1))]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[resourceId('Microsoft.Compute/availabilitySets', concat(parameters('firewallNamePrefix'), '-as'))]",
                 "diskcopy",
                 "nicCopy"
@@ -211,12 +280,6 @@
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('firewallNamePrefix'), '-', copyIndex(1), '-trusted-nic'))]"
                         }
                     ]
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob]"
-                    }
                 }
             }
         },
@@ -236,7 +299,7 @@
                 "osType": "Linux",
                 "creationData": {
                     "createOption": "Import",
-                    "sourceUri": "https://azpfsense.blob.core.windows.net/vhd/pfsense.vhd"
+                    "sourceUri": "[variables('pfSenseSourceUri')]"
                 },
                 "diskSizeGB": 30
             }
