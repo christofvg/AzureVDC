@@ -8,6 +8,9 @@
         "firewallResourceGroup": {
             "value": "rg-hub-firewalls"
         },
+        "managementResourceGroup": {
+            "value": "rg-hub-management"
+        },
         "location": {
             "value": "West Europe"
         },
@@ -70,6 +73,18 @@
         },
         "location": {
             "value": "West Europe"
+        },
+        "adminUsername": {
+            "value": "admin.mgmt"
+        },
+        "windowsOSVersion": {
+            "value": "2016-Datacenter-smalldisk"
+        },
+        "managementVMName": {
+            "value": "pfsense-mgmt"
+        },
+        "managementVMSize": {
+            "value": "Standard_D2S_v3"
         }
     }
 }
