@@ -89,6 +89,9 @@
             "apiVersion": "2017-06-01",
             "location": "[resourceGroup().location]",
             "comments": "Deployment of the HUB virtual network",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', 'untrusted-nsg')]"
+            ],
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
