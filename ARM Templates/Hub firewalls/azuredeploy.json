@@ -175,7 +175,7 @@
                         "name": "[variables('untrustedLoadBalancerProbeName')]",
                         "properties": {
                             "protocol": "tcp",
-                            "port": 22,
+                            "port": 443,
                             "intervalInSeconds": 5,
                             "numberOfProbes": 2
                         }

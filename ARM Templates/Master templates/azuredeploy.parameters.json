@@ -3,10 +3,10 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "virtualNetworkResourceGroup": {
-            "value": "vdc-hub-vnet"
+            "value": "rg-hub-network"
         },
         "firewallResourceGroup": {
-            "value": "vdc-hub-firewalls"
+            "value": "rg-hub-firewalls"
         },
         "location": {
             "value": "West Europe"

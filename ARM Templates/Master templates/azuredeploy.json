@@ -144,8 +144,8 @@
         }
     },
     "variables": {
-        "networkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub network/virtualNetwork.json'))]",
-        "firewallTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub firewalls/managedDisk.json'))]"
+        "networkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub network/azuredeploy.json'))]",
+        "firewallTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub firewalls/azuredeploy.json'))]"
     },
     "resources": [
         {
