@@ -1,0 +1,75 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkResourceGroup": {
+            "value": "vdc-hub-vnet"
+        },
+        "firewallResourceGroup": {
+            "value": "vdc-hub-firewalls"
+        },
+        "location": {
+            "value": "West Europe"
+        },
+        "hubVnetName": {
+            "value": "vdc-hub-vnet"
+        },
+        "hubVnetPrefix": {
+            "value": "10.1.0.0/16"
+        },
+        "gatewaySubnetPrefix": {
+            "value": "10.1.0.0/27"
+        },
+        "trustedSubnetName": {
+            "value": "trusted"
+        },
+        "trustedSubnetPrefix": {
+            "value": "10.1.0.32/27"
+        },
+        "untrustedSubnetName": {
+            "value": "untrusted"
+        },
+        "untrustedSubnetPrefix": {
+            "value": "10.1.0.64/27"
+        },
+        "managementSubnetName": {
+            "value": "management"
+        },
+        "managementSubnetPrefix": {
+            "value": "10.1.0.96/27"
+        },
+        "numberOfInstances": {
+            "value": 2
+        },
+        "firewallNamePrefix": {
+            "value": "pfsense"
+        },
+        "trustedSubnetIpPrefixString": {
+            "value": "10.1.0."
+        },
+        "trustedFirstIpHostString": {
+            "value": "36"
+        },
+        "untrustedSubnetIpPrefixString": {
+            "value": "10.1.0."
+        },
+        "untrustedFirstIpHostString": {
+            "value": "68"
+        },
+        "trustedLoadBalancerIPAddress": {
+            "value": "10.1.0.40"
+        },
+        "pfSenseVhdPath": {
+            "value": "/vhd/pfsense.vhd"
+        },
+        "firewallVmSize": {
+            "value": "Standard_B2s"
+        },
+        "_artifactsLocation": {
+            "value": "https://raw.githubusercontent.com/christofvg/AzureVDC/master/"
+        },
+        "location": {
+            "value": "West Europe"
+        }
+    }
+}

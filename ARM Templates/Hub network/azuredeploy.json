@@ -60,6 +60,30 @@
     "variables": {},
     "resources": [
         {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "untrusted-nsg",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow_https",
+                        "properties": {
+                            "description": "This rule allows https from the internet to the public load balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('hubVnetName')]",
             "apiVersion": "2017-06-01",
@@ -87,7 +111,10 @@
                     {
                         "name": "[parameters('untrustedSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('untrustedSubnetPrefix')]"
+                            "addressPrefix": "[parameters('untrustedSubnetPrefix')]",
+                            "networkSecurityGroup":{
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'untrusted-nsg')]"
+                            }
                         }
                     },
                     {

@@ -1,0 +1,273 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where to deploy the virtual network"
+            }
+        },
+        "firewallResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where to deploy pfSense"
+            }
+        },
+        "hubVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the HUB virtual network"
+            }
+        },
+        "hubVnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the HUB virtual network"
+            }
+        },
+        "gatewaySubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the gateway subnet"
+            }
+        },
+        "trustedSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the trusted subnet"
+            }
+        },
+        "trustedSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the trusted subnet"
+            }
+        },
+        "untrustedSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the untrusted subnet"
+            }
+        },
+        "untrustedSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the untrusted subnet"
+            }
+        },
+        "managementSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the management subnet"
+            }
+        },
+        "managementSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the management subnet"
+            }
+        },
+        "numberOfInstances": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of instances of firewalls that need to be deployed"
+            }
+        },
+        "firewallNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Then name prefix for the firewalls"
+            }
+        },
+        "trustedSubnetIpPrefixString": {
+            "type": "string",
+            "metadata": {
+                "description": "First 3 octets and separating dots of the subnet (e.g. '10.0.0.')"
+            }
+        },
+        "trustedFirstIpHostString": {
+            "type": "string",
+            "metadata": {
+                "description": "Last octet without separating dot of the subnet (e.g. '68')"
+            }
+        },
+        "untrustedSubnetIpPrefixString": {
+            "type": "string",
+            "metadata": {
+                "description": "First 3 octets and separating dots of the subnet (e.g. '10.0.0.')"
+            }
+        },
+        "untrustedFirstIpHostString": {
+            "type": "string",
+            "metadata": {
+                "description": "Last octet without separating dot of the subnet (e.g. '68')"
+            }
+        },
+        "trustedLoadBalancerIPAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Static IP address for the trusted load balancer"
+            }
+        },
+        "pfSenseVhdPath": {
+            "type": "string",
+            "metadata": {
+                "description": "Path to the pfSense VHD file on the storage account (e.g. /vhd/pfsense.vhd)"
+            }
+        },
+        "pfSenseStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account name on which the VHD is stored"
+            }
+        },
+        "firewallVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "VM size for the firewalls"
+            }
+        },
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Path to the repository where the linked templates can be found"
+            },
+            "defaultValue": "https://raw.githubusercontent.com/christofvg/AzureVDC/master/"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The Azure location to deploy all resources"
+            },
+            "defaultValue": "[resourceGroup().location]"
+        }
+    },
+    "variables": {
+        "networkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub network/virtualNetwork.json'))]",
+        "firewallTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub firewalls/managedDisk.json'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2018-11-01",
+            "location": "[parameters('location')]",
+            "name": "[parameters('virtualNetworkResourceGroup')]",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2018-11-01",
+            "location": "[parameters('location')]",
+            "name": "[parameters('firewallResourceGroup')]",
+            "properties": {}
+        },
+        {
+            "name": "provisionVirtualNetwork",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups', parameters('virtualNetworkResourceGroup'))]"
+            ],
+            "apiVersion": "2018-11-01",
+            "ResourceGroup": "[parameters('virtualNetworkResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('networkTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "hubVnetName": {
+                        "value": "[parameters('hubVnetName')]"
+                    },
+                    "hubVnetPrefix": {
+                        "value": "[parameters('hubVnetPrefix')]"
+                    },
+                    "gatewaySubnetPrefix": {
+                        "value": "[parameters('gatewaySubnetPrefix')]"
+                    },
+                    "trustedSubnetName": {
+                        "value": "[parameters('trustedSubnetName')]"
+                    },
+                    "trustedSubnetPrefix": {
+                        "value": "[parameters('trustedSubnetPrefix')]"
+                    },
+                    "untrustedSubnetName": {
+                        "value": "[parameters('untrustedSubnetName')]"
+                    },
+                    "untrustedSubnetPrefix": {
+                        "value": "[parameters('untrustedSubnetPrefix')]"
+                    },
+                    "managementSubnetName": {
+                        "value": "[parameters('managementSubnetName')]"
+                    },
+                    "managementSubnetPrefix": {
+                        "value": "[parameters('managementSubnetPrefix')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "provisionfirewalls",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups', parameters('firewallResourceGroup'))]",
+                "provisionVirtualNetwork"
+            ],
+            "apiVersion": "2018-11-01",
+            "ResourceGroup": "[parameters('firewallResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('firewallTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "numberOfInstances": {
+                        "value": "[parameters('numberOfInstances')]"
+                    },
+                    "firewallNamePrefix": {
+                        "value": "[parameters('firewallNamePrefix')]"
+                    },
+                    "virtualNetworkName": {
+                        "value": "[parameters('hubVnetName')]"
+                    },
+                    "virtualNetworkResourceGroup": {
+                        "value": "[parameters('virtualNetworkResourceGroup')]"
+                    },
+                    "trustedFirewallSubnet": {
+                        "value": "[parameters('trustedSubnetName')]"
+                    },
+                    "trustedSubnetIpPrefixString": {
+                        "value": "[parameters('trustedSubnetIpPrefixString')]"
+                    },
+                    "trustedFirstIpHostString": {
+                        "value": "[parameters('trustedFirstIpHostString')]"
+                    },
+                    "untrustedFirewallSubnet": {
+                        "value": "[parameters('untrustedSubnetName')]"
+                    },
+                    "untrustedSubnetIpPrefixString": {
+                        "value": "[parameters('untrustedSubnetIpPrefixString')]"
+                    },
+                    "untrustedFirstIpHostString": {
+                        "value": "[parameters('untrustedFirstIpHostString')]"
+                    },
+                    "trustedLoadBalancerIPAddress": {
+                        "value": "[parameters('trustedLoadBalancerIPAddress')]"
+                    },
+                    "pfSenseVhdPath": {
+                        "value": "[parameters('pfSenseVhdPath')]"
+                    },
+                    "pfSenseStorageAccountName": {
+                        "value": "[parameters('pfSenseStorageAccountName')]"
+                    },
+                    "firewallVmSize": {
+                        "value": "[parameters('firewallVmSize')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

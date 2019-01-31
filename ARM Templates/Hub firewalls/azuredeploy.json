@@ -97,11 +97,95 @@
         "trustedLoadBalancerFrontEndIPConfigId": "[concat(variables('trustedLoadBalancerId'), '/frontendIPConfigurations/', variables('trustedLoadBalancerFrontEndName'))]",
         "trustedLoadBalancerBackEndPoolId": "[concat(variables('trustedLoadBalancerId'), '/backendAddressPools/', variables('trustedLoadBalancerBackEndName'))]",
         "trustedLoadBalancerProbeId": "[concat(variables('trustedLoadBalancerId'), '/probes/', variables('trustedLoadBalancerProbeName'))]",
+        "untrustedLoadBalancerName": "[concat(parameters('firewallNamePrefix'), '-untrusted-lb')]",
+        "untrustedLoadBalancerFrontEndName": "[concat(variables('untrustedLoadBalancerName'), '-fe')]",
+        "untrustedLoadBalancerBackEndName": "[concat(variables('untrustedLoadBalancerName'), '-be')]",
+        "untrustedLoadBalancerProbeName": "[concat(variables('untrustedLoadBalancerName'), '-probe')]",
+        "untrustedLoadBalancerHttpsRuleName": "[concat(variables('untrustedLoadBalancerName'), '-rule-https')]",
+        "untrustedLoadBalancerId": "[resourceId('Microsoft.Network/loadBalancers', variables('untrustedLoadBalancerName'))]",
+        "untrustedLoadBalancerFrontEndIPConfigId": "[concat(variables('untrustedLoadBalancerId'), '/frontendIPConfigurations/', variables('untrustedLoadBalancerFrontEndName'))]",
+        "untrustedLoadBalancerBackEndPoolId": "[concat(variables('untrustedLoadBalancerId'), '/backendAddressPools/', variables('untrustedLoadBalancerBackEndName'))]",
+        "untrustedLoadBalancerProbeId": "[concat(variables('untrustedLoadBalancerId'), '/probes/', variables('untrustedLoadBalancerProbeName'))]",
+        "untrustedLoadBalancerPublicIPName": "[concat(variables('untrustedLoadBalancerName'), '-pip')]",
         "pfSenseSourceUri": "[concat('https://', parameters('pfSenseStorageAccountName'), '.blob.core.windows.net', parameters('pfSenseVhdPath'))]",
         "trustedSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup') ,'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('trustedFirewallSubnet'))]",
         "untrustedSubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup') ,'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('untrustedFirewallSubnet'))]"
     },
     "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Standard"
+            },
+            "name": "[variables('untrustedLoadBalancerPublicIPName')]",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "sku": {
+                "name": "Standard"
+            },
+            "name": "[variables('untrustedLoadBalancerName')]",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('untrustedLoadBalancerFrontEndName')]",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('untrustedLoadBalancerPublicIPName'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('untrustedLoadBalancerBackEndName')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "[variables('untrustedLoadBalancerHttpsRuleName')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[variables('untrustedLoadBalancerFrontEndIPConfigId')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[variables('untrustedLoadBalancerBackEndPoolId')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 443,
+                            "backendPort": 443,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[variables('untrustedLoadBalancerProbeId')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "[variables('untrustedLoadBalancerProbeName')]",
+                        "properties": {
+                            "protocol": "tcp",
+                            "port": 22,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('untrustedLoadBalancerPublicIPName'))]"
+            ]
+        },
         {
             "type": "Microsoft.Network/loadBalancers",
             "sku": {
@@ -151,15 +235,15 @@
                 ],
                 "probes": [
                     {
-                      "name": "[variables('trustedLoadBalancerProbeName')]",
-                      "properties": {
-                        "protocol": "tcp",
-                        "port": 443,
-                        "intervalInSeconds": 5,
-                        "numberOfProbes": 2
-                      }
+                        "name": "[variables('trustedLoadBalancerProbeName')]",
+                        "properties": {
+                            "protocol": "tcp",
+                            "port": 443,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
                     }
-                  ]
+                ]
             }
         },
         {
@@ -218,6 +302,9 @@
                 "count": "[parameters('numberOfInstances')]",
                 "name": "nicCopy"
             },
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('untrustedLoadBalancerName'))]"
+            ],
             "properties": {
                 "ipConfigurations": [
                     {
@@ -227,7 +314,12 @@
                             "privateIPAddress": "[concat(parameters('untrustedSubnetIpPrefixString'), copyIndex(int(parameters('untrustedFirstIpHostString'))))]",
                             "subnet": {
                                 "id": "[variables('untrustedSubnetRef')]"
-                            }
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[variables('untrustedLoadBalancerBackEndPoolId')]"
+                                }
+                            ]
                         }
                     }
                 ],
