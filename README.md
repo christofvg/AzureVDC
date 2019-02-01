@@ -48,6 +48,15 @@ ARM Templates
         azuredeploy.parameters.json
 ```
 
+## pfSense image
+
+In this lab, a pfSense image is used to create the firewall instances. I wrote a blog series how to create your own pfSense image that can be deployed in Azure.
+
+* [pfSense on Azure - Part 1 - Create pfSense Virtual Machine](https://christofvg.be/2019/01/12/pfSense-on-Azure-Part-1-Create-pfSense-Virtual-Machine/)
+* [pfSense on Azure - Part 2 - Install pfSense](https://christofvg.be/2019/01/12/pfSense-on-Azure-Part-2-Install-pfSense/)
+* [pfSense on Azure - Part 3 - Deploy pfSense in Azure](https://christofvg.be/2019/01/12/pfSense-on-Azure-Part-3-Deploy-pfSense-in-Azure/)
+* [pfSense on Azure - Part 4 - Deploy pfSense in Azure with ARM templates](https://christofvg.be/2019/01/23/pfSense-on-Azure-Part-4-Deploy-pfSense-in-Azure-with-ARM-templates/)
+
 ## Discrete template deployment (using PowerShell)
 
 The discrete (single) templates need to be deployed in a resource group. In my lab, they are deployed in their own resource group as they don't share a common life cycle.
