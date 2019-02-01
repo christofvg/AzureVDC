@@ -124,7 +124,7 @@ New-AzureRmDeployment -Location <Azure location> `
 ### Management
 
 * **adminUserName**: The username to configure on the management virtual machine.
-* **adminPassword (not part of the parameters file): The password to configure on the management virtual machine.
+* **adminPassword** (not part of the parameters file): The password to configure on the management virtual machine.
 * **subnetName**: The name of the subnet in which the management virtual machine needs to be connected.
 * **WindowsOSVersion**: The Windows version that needs to be installed on the management virtual machine.
 * **managementVMName**: The name for the management virtual machine.
