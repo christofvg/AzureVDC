@@ -166,4 +166,4 @@ Then an extra gateway needs to be added on interface hn1 with address 10.1.0.33 
 
 ## More info
 
-For  updates or questions: <a href="https://twitter.com/cvangeendert?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-show-count="false">Follow @cvangeendert</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+For  updates or questions: <a href="https://twitter.com/cvangeendert?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-show-count="false">Follow @cvangeendert</a>
