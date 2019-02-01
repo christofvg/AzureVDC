@@ -140,3 +140,30 @@ These parameters are unique to the master template to create the resource groups
 * **firewallResourceGroup**: The name of the resource group in which the firewall resources need to be deployed.
 * **managementResourceGroup**: The name of the resource group in which the management virtual machine resources need to be deployed.
 * **location** The Azure location in which the resources need to be deployed.
+
+## Next steps
+
+To make the complete setup work, a few more steps in pfSense need to be done. In the future this should be automated as well, but for now here the high-level next steps. They will be explained more in detail on the blog.
+
+### SSH
+
+SSH needs to be enabled on pfSense, so it can be accessed over SSH.
+
+### Routing
+
+All load balancers in Azure use the same source IP for the health probe: **168.63.129.16**. A health check, originating from this address, pops-up on the LAN interface of the firewall. To have a symmetric routing, the answer of this message should go back on the LAN interface to the gateway of the trusted subnet. There are 2 reasons why this doesn't happen by default:
+
+* The IP 168.63.129.16 is public, so it follows the route to internet (through the firewall)
+* By default, a static route to 168.63.129.16/32 is already added to pfSense using classless-static-routing in DHCP
+
+To overcome this issue, 2 things need to be done in pfSense. First the static route to 168.63.129.16 needs to be removed:
+
+```bash
+route delete 168.63.129.16
+```
+
+Then an extra gateway needs to be added on interface hn1 with address 10.1.0.33 (if addressing of the example is followed). If the gateway is added, a static route for 168.63.129.16/32 needs to be added with destination this gateway.
+
+## More info
+
+For  updates or questions: <a href="https://twitter.com/cvangeendert?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-show-count="false">Follow @cvangeendert</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
