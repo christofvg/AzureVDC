@@ -1,0 +1,68 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "onPremVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the on-premise virtual network"
+            }
+        },
+        "onPremVnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the on-premise virtual network"
+            }
+        },
+        "onPremSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name for the on-premise subnet"
+            }
+        },
+        "onPremSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the spoke subnet"
+            }
+        },
+        "gatewaySubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix for the gateway subnet"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('onPremVnetName')]",
+            "apiVersion": "2017-06-01",
+            "location": "[resourceGroup().location]",
+            "comments": "Deployment of the spoke virtual network",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('onPremVnetPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('gatewaySubnetPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('onPremSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('onPremSubnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}
