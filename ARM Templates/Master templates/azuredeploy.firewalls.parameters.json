@@ -11,44 +11,20 @@
         "managementResourceGroup": {
             "value": "rg-hub-management"
         },
-        "onPremVirtualNetworkResourceGroup": {
-            "value": "rg-onprem-network"
-        },
-        "spoke1VirtualNetworkResourceGroup": {
-            "value": "rg-spoke1-network"
-        },
-        "spoke2VirtualNetworkResourceGroup": {
-            "value": "rg-spoke2-network"
-        },
         "location": {
             "value": "West Europe"
         },
         "hubVnetName": {
             "value": "vdc-hub-vnet"
         },
-        "hubVnetPrefix": {
-            "value": "10.1.0.0/16"
-        },
-        "gatewaySubnetPrefix": {
-            "value": "10.1.0.0/27"
-        },
         "trustedSubnetName": {
             "value": "trusted"
-        },
-        "trustedSubnetPrefix": {
-            "value": "10.1.0.32/27"
         },
         "untrustedSubnetName": {
             "value": "untrusted"
         },
-        "untrustedSubnetPrefix": {
-            "value": "10.1.0.64/27"
-        },
         "managementSubnetName": {
             "value": "management"
-        },
-        "managementSubnetPrefix": {
-            "value": "10.1.0.96/27"
         },
         "numberOfInstances": {
             "value": 2
@@ -94,45 +70,6 @@
         },
         "managementVMSize": {
             "value": "Standard_D2S_v3"
-        },
-        "onPremVnetName": {
-            "value": "vdc-onprem-vnet"
-        },
-        "onPremVnetPrefix": {
-            "value": "10.0.0.0/16"
-        },
-        "onPremSubnetName": {
-            "value": "onpremsubnet"
-        },
-        "onPremSubnetPrefix": {
-            "value": "10.0.0.0/24"
-        },
-        "onPremGatewaySubnetPrefix": {
-            "value": "10.0.1.0/24"
-        },
-        "spoke1VnetName": {
-            "value": "vdc-spoke1-vnet"
-        },
-        "spoke1VnetPrefix": {
-            "value": "10.2.0.0/24"
-        },
-        "spoke1SubnetName": {
-            "value": "spoke1subnet"
-        },
-        "spoke1SubnetPrefix": {
-            "value": "10.2.0.0/24"
-        },
-        "spoke2VnetName": {
-            "value": "vdc-spoke2-vnet"
-        },
-        "spoke2VnetPrefix": {
-            "value": "10.3.0.0/24"
-        },
-        "spoke2SubnetName": {
-            "value": "spoke2subnet"
-        },
-        "spoke2SubnetPrefix": {
-            "value": "10.3.0.0/24"
         }
     }
 }

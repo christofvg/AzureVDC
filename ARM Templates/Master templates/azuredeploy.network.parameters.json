@@ -47,9 +47,6 @@
         "_artifactsLocation": {
             "value": "https://raw.githubusercontent.com/christofvg/AzureVDC/master/"
         },
-        "location": {
-            "value": "West Europe"
-        },
         "onPremVnetName": {
             "value": "vdc-onprem-vnet"
         },

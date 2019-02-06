@@ -43,9 +43,21 @@ ARM Templates
 │       azuredeploy.json
 │       azuredeploy.parameters.json
 │
+├───Onprem network                      # Discrete on-premise network
+│       azuredeploy.json
+│       azuredeploy.parameters.json
+│
+├───Spoke network                         # Discrete spoke network template
+│       azuredeploy.json
+│       azuredeploy.parameters.json
+│       azuredeploy.spoke1.parameters.json
+│       azuredeploy.spoke2.parameters.json
+│
 └───Master templates                    # Master template
-        azuredeploy.json
-        azuredeploy.parameters.json
+        azuredeploy.firewalls.json
+        azuredeploy.firewalls.parameters.json
+        azuredeploy.network.json
+        azuredeploy.network.parameters.json
 ```
 
 ## pfSense image
@@ -75,14 +87,22 @@ New-AzureRmResourceGroupDeployment -TemplateFile <path to the azuredeploy.json f
 
 ## Master template deployment (using PowerShell)
 
-The master template deploys all resources, but also the resource groups. This means that another command needs to be used to perform the deployment: New-AzureRmDeployment.
+The master template deploys all resources, but also the resource groups. This means that another command needs to be used to perform the deployment: New-AzureRmDeployment. Since there is a maximum of 5 templates that can be deployed this way, the templates are separated into the networking and the firewalls.
 
 The following script can be used to deploy the master template:
 
 ```PowerShell
+# Deploy the networking
 New-AzureRmDeployment -Location <Azure location> `
-                      -TemplateFile <path to the azuredeploy.json file> `
-                      -TemplateParameterFile <path to the azuredeploy.parameters.json file> `
+                      -TemplateFile <path to the azuredeploy.network.json file> `
+                      -TemplateParameterFile <path to the azuredeploy.network.parameters.json file> `
+                      -Verbose
+
+# Deploy the firewalls and management resources
+# Deploy the networking
+New-AzureRmDeployment -Location <Azure location> `
+                      -TemplateFile <path to the azuredeploy.firewalls.json file> `
+                      -TemplateParameterFile <path to the azuredeploy.firewalls.parameters.json file> `
                       -Verbose
 ```
 
@@ -130,15 +150,35 @@ New-AzureRmDeployment -Location <Azure location> `
 * **managementVMName**: The name for the management virtual machine.
 * **managementVMSize**: The VM size of the management virtual machine.
 
+### On-premise network
+
+* **onPremVnetName**: The name of the on-permise virtual network.
+* **onPremVnetPrefix** The network address in CIDR notation of the on-premise network.
+* **onPremSubnetName**: The name of the on-premise subnet.
+* **onPremSubnetPrefix**: The network address in CIDR notation of the on-premise subnet.
+* **gatewaySubnetPrefix**: The network address in CIDR notation of the on-premise gateway subnet.
+
+### Spoke network
+
+* **spokeVnetName**: The name of the spoke virtual network.
+* **spokeVnetPrefix** The network address in CIDR notation of the spoke network.
+* **spokeSubnetName**: The name of the spoke subnet.
+* **spokeSubnetPrefix**: The network address in CIDR notation of the spoke subnet.
+
 ### Master
 
 All parameters that are described above are used in the parameters in the master template. Where multiple templates share the same parameters, they are specified once and used where needed.
 
-These parameters are unique to the master template to create the resource groups as well:
+There are 2 master templates defined, one for the networks and one for the firewalls and management virtual machine.
+
+These parameters are unique to the master templates to create the resource groups as well:
 
 * **virtualNetworkResourceGroup**: The name of the resource group in which the network resources need to be deployed.
 * **firewallResourceGroup**: The name of the resource group in which the firewall resources need to be deployed.
 * **managementResourceGroup**: The name of the resource group in which the management virtual machine resources need to be deployed.
+* **onPremVirtualNetworkResourceGroup**: The name of the resource group in which the on-premise network resources need to be deployed.
+* **spoke1VirtualNetworkResourceGroup**: The name of the resource group in which the spoke 1 network resources need to be deployed.
+* **spoke2VirtualNetworkResourceGroup**: The name of the resource group in which the spoke 2 network resources need to be deployed.
 * **location** The Azure location in which the resources need to be deployed.
 
 ## Next steps

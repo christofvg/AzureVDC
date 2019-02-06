@@ -176,7 +176,7 @@
     "variables": {
         "networkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Hub network/azuredeploy.json'))]",
         "onPremNetworkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Onprem network/azuredeploy.json'))]",
-        "spokeNetworkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/spoke network/azuredeploy.json'))]"
+        "spokeNetworkTemplateUri": "[uri(parameters('_artifactsLocation'), concat('ARM Templates/Spoke network/azuredeploy.json'))]"
     },
     "resources": [
         {
@@ -296,7 +296,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[variables('onPremNetworkTemplateUri')]",
+                    "uri": "[variables('spokeNetworkTemplateUri')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -326,7 +326,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[variables('onPremNetworkTemplateUri')]",
+                    "uri": "[variables('spokeNetworkTemplateUri')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
