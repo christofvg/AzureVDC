@@ -1,0 +1,39 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkResourceGroup": {
+            "value": "rg-hub-network"
+        },
+        "vpnType": {
+            "value": "PolicyBased"
+        },
+        "localGatewayName": {
+            "value": "s2svpn-lg"
+        },
+        "localGatewayIpAddress": {
+            "value": "s2svpn-pip"
+        },
+        "localGatewayIpAddress": {
+            "value": "0.0.0.0"
+        },
+        "localAddressPrefix": {
+            "value": "10.0.0.0/16"
+        },
+        "virtualNetworkName": {
+            "value": "vdc-hub-vnet"
+        },
+        "gatewayPublicIPName": {
+            "value": "s2svpn-pip"
+        },
+        "gatewayName": {
+            "value": "s2svpn-gw"
+        },
+        "gatewaySku": {
+            "value": "Basic"
+        },
+        "connectionName": {
+            "value": "s2svpn-conn"
+        }
+    }
+}

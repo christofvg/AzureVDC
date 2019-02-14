@@ -1,0 +1,166 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network resource group"
+            }
+        },
+        "vpnType": {
+            "type": "string",
+            "metadata": {
+                "description": "Route based (Dynamic Gateway) or Policy based (Static Gateway)"
+            },
+            "allowedValues": [
+                "RouteBased",
+                "PolicyBased"
+            ]
+        },
+        "localGatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the local network gateway"
+            }
+        },
+        "localGatewayIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP address of the local (peer) gateway"
+            }
+        },
+        "localAddressPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Address prefix of the local (peer) network in CIDR format (e.g. 10.0.0.0/16)"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual network name"
+            }
+        },
+        "gatewayPublicIPName": {
+            "type": "string",
+            "metadata": {
+                "description": "DNS name for the Virtual Network Gateway"
+            }
+        },
+        "gatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual network gateway name"
+            }
+        },
+        "gatewaySku": {
+            "type": "string",
+            "allowedValues": [
+                "Basic",
+                "VpnGw1",
+                "VpnGw2",
+                "VpnGw3"
+            ],
+            "metadata": {
+                "description": "VPN sku"
+            }
+        },
+        "connectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "VPN Connection name"
+            }
+        },
+        "sharedKey": {
+            "type": "string",
+            "metadata": {
+                "description": "The Pre-shared Key to encrypt the ipsec tunnel"
+            }
+        }
+    },
+    "variables": {
+        "gatewaySubnetRef": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'GatewaySubnet')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-07-01",
+            "type": "Microsoft.Network/localNetworkGateways",
+            "name": "[parameters('localGatewayName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "localNetworkAddressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('localAddressPrefix')]"
+                    ]
+                },
+                "gatewayIpAddress": "[parameters('localGatewayIpAddress')]"
+            }
+        },
+        {
+            "apiVersion": "2018-07-01",
+            "name": "[parameters('connectionName')]",
+            "type": "Microsoft.Network/connections",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworkGateways/', parameters('gatewayName'))]",
+                "[concat('Microsoft.Network/localNetworkGateways/', parameters('localGatewayName'))]"
+            ],
+            "properties": {
+                "virtualNetworkGateway1": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('gatewayName'))]"
+                },
+                "localNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/localNetworkGateways', parameters('localGatewayName'))]"
+                },
+                "connectionType": "IPsec",
+                "routingWeight": 10,
+                "sharedKey": "[parameters('sharedKey')]"
+            }
+        },
+        {
+            "apiVersion": "2018-07-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('gatewayPublicIPName')]",
+            "location": "[resourceGroup().location]",
+            "sku":{
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "apiVersion": "2018-07-01",
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[parameters('gatewayName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('gatewayPublicIPName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('gatewaySubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('gatewayPublicIPName'))]"
+                            }
+                        },
+                        "name": "vnetGatewayConfig"
+                    }
+                ],
+                "sku": {
+                    "name": "[parameters('gatewaySku')]",
+                    "tier": "[parameters('gatewaySku')]"
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "[parameters('vpnType')]",
+                "enableBgp": "false"
+            }
+        }
+    ]
+}
